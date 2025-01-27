@@ -40,7 +40,7 @@ model user {
   last_name   String
   email       String        @unique(map: "User_email_key")
   username    String        @unique(map: "User_username_key")
-  password    String
+  password    String        @db.VarChar(255)
   event       event[]
   joinedevent joinedevent[]
 }

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 
-export const authorize = (...allowedRoles: string[]) => {
+type Roles = string[];
+
+export const authorize = (...allowedRoles: Roles) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.role) {
       res.status(401).json({

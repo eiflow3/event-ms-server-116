@@ -41,7 +41,11 @@ export const showEvent = (
       });
 
       if (!event) {
-        throw new Error("Event not found");
+        reject({
+          status: "error",
+          message: "Event not found",
+        });
+        return;
       }
 
       resolve({
@@ -73,11 +77,14 @@ export const getUserEvents = (
         where: {
           user_id: userID,
         },
+        include: {
+          event: true,
+        },
       });
 
       resolve({
         status: "success",
-        message: "Events fetched successfully",
+        message: "Joined Events fetched successfully",
         data: events,
       });
     } catch (error) {
@@ -101,18 +108,60 @@ export const userEventRegistration = (
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await prisma.joinedevent.create({
-        data: {
-          user_id: userID,
-          event_id: eventID,
-        },
+      const res = await prisma.$transaction(async (tx) => {
+        const isEventExist = await tx.event.findUnique({
+          where: {
+            id: eventID,
+          },
+        });
+
+        if (!isEventExist) {
+          reject({
+            status: "error",
+            message: "Event not found.",
+          });
+        }
+
+        const alreadyJoined = await tx.joinedevent.findFirst({
+          where: {
+            user_id: userID,
+            event_id: eventID,
+          },
+        });
+
+        if (alreadyJoined) {
+          reject({
+            status: "error",
+            message: "Already registered to this event.",
+          });
+        }
+
+        const joinEvent = await tx.joinedevent.create({
+          data: {
+            user_id: userID,
+            event_id: eventID,
+          },
+        });
+
+        await tx.event.update({
+          where: {
+            id: joinEvent.event_id,
+          },
+          data: {
+            registered_participants: {
+              increment: 1,
+            },
+          },
+        });
+
+        return {
+          status: "success",
+          message: "Registered to event successfully.",
+          data: joinEvent,
+        };
       });
 
-      resolve({
-        status: "success",
-        message: "Registered to event successfully",
-        data: res,
-      });
+      resolve(res);
     } catch (error) {
       reject({
         status: "error",
@@ -130,20 +179,66 @@ export const userEventUnregistration = (
 ): Promise<{
   status: string;
   message: string;
+  data: joinedevent;
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await prisma.joinedevent.deleteMany({
-        where: {
-          user_id: userID,
-          event_id: eventID,
-        },
+      const res = await prisma.$transaction(async (tx) => {
+        const isEventExist = await tx.event.findUnique({
+          where: {
+            id: eventID,
+          },
+        });
+
+        if (!isEventExist) {
+          reject({
+            status: "error",
+            message: "Event not found.",
+          });
+        }
+
+        const alreadyJoined = await tx.joinedevent.findFirst({
+          where: {
+            user_id: userID,
+            event_id: eventID,
+          },
+        });
+
+        if (!alreadyJoined) {
+          reject({
+            status: "error",
+            message: "Not registered to this event.",
+          });
+        }
+
+        const unjoinEvent = await tx.joinedevent.delete({
+          where: {
+            user_id_event_id: {
+              user_id: userID,
+              event_id: eventID,
+            },
+          },
+        });
+
+        await tx.event.update({
+          where: {
+            id: unjoinEvent.event_id,
+          },
+          data: {
+            registered_participants: {
+              decrement: 1,
+            },
+          },
+        });
+
+        return {
+          status: "success",
+          message: "Unregistered from event successfully.",
+          data: unjoinEvent,
+        };
       });
 
-      resolve({
-        status: "success",
-        message: "Unregistered from event successfully",
-      });
+      resolve(res);
     } catch (error) {
       reject({
         status: "error",
@@ -195,18 +290,45 @@ export const updateEvent = (
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await prisma.event.update({
-        where: {
-          id: eventID,
-        },
-        data: event,
+      const res = await prisma.$transaction(async (tx) => {
+        const isEventExist = await tx.event.findUnique({
+          where: {
+            id: eventID,
+          },
+        });
+
+        if (!isEventExist) {
+          reject({
+            status: "error",
+            message: "Event not found.",
+          });
+        }
+
+        const updatePartialData = Object.keys(event).reduce((acc, key) => {
+          const k = key as keyof Omit<event, "id">;
+          if (event[k] !== undefined) {
+            (acc as any)[k] = event[k];
+          }
+          return acc;
+        }, {} as Partial<Omit<event, "id">>);
+
+        const updatedEvent = await tx.event.update({
+          where: {
+            id: eventID,
+          },
+          data: {
+            ...updatePartialData,
+          },
+        });
+
+        return {
+          status: "success",
+          message: "Event updated successfully",
+          data: updatedEvent,
+        };
       });
 
-      resolve({
-        status: "success",
-        message: "Event updated successfully",
-        data: res,
-      });
+      resolve(res);
     } catch (error) {
       reject({
         status: "error",
@@ -227,17 +349,34 @@ export const deleteEvent = (
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await prisma.event.delete({
-        where: {
-          id: eventID,
-        },
+      const res = await prisma.$transaction(async (tx) => {
+        const event = await tx.event.delete({
+          where: {
+            id: eventID,
+          },
+        });
+
+        if (!event) {
+          reject({
+            status: "error",
+            message: "Event not found.",
+          });
+        }
+
+        await tx.joinedevent.deleteMany({
+          where: {
+            event_id: eventID,
+          },
+        });
+
+        return {
+          status: "success",
+          message: "Event deleted successfully",
+          data: event,
+        };
       });
 
-      resolve({
-        status: "success",
-        message: "Event deleted successfully",
-        data: res,
-      });
+      resolve(res);
     } catch (error) {
       reject({
         message: "Failed to delete event",

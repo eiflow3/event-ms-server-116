@@ -1,17 +1,30 @@
-import { prisma, User } from "../../Configs/prisma";
+import { prisma, user } from "../../Configs/prisma";
 
 export const createUser = async (
-  user: Omit<User, "id">
+  user: Omit<user, "id">
 ): Promise<{
   status: string;
   message: string;
+  data?: Omit<user, "password">;
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      await prisma.user.create({
+      const res = await prisma.user.create({
         data: user,
+
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          first_name: true,
+          last_name: true,
+        },
       });
-      resolve({ status: "success", message: "User created successfully" });
+      resolve({
+        status: "success",
+        message: "User created successfully",
+        data: res,
+      });
     } catch (error) {
       reject({
         status: "error",
@@ -26,7 +39,7 @@ export const getUserCredential = async (
   username: string
 ): Promise<{
   status: string;
-  user: Omit<User, "first_name" | "last_name"> | null;
+  user: Omit<user, "first_name" | "last_name"> | null;
 }> => {
   return new Promise(async (resolve, reject) => {
     try {

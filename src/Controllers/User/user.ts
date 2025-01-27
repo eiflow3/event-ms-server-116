@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { createUser, getUserCredential } from "../../Database/User/user";
-import { generateAccessToken, hashPassword } from "../../Services";
+import {
+  comparePassword,
+  generateAccessToken,
+  hashPassword,
+} from "../../Services";
 
 export const Login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -14,12 +18,20 @@ export const Login = async (req: Request, res: Response) => {
     const userData = await getUserCredential(username);
 
     if (!userData.user) {
-      res.status(400).json({ message: "Invalid username or password" });
+      res.status(400).json({
+        status: userData.status,
+        message: "Invalid username or password",
+      });
       return;
     }
 
-    if (userData.user.password !== password) {
-      res.status(400).json({ message: "Invalid username or password" });
+    const compare = await comparePassword(password, userData.user.password);
+
+    if (!compare.result) {
+      res.status(400).json({
+        status: compare.status,
+        message: "Invalid username or password",
+      });
       return;
     }
 
@@ -34,10 +46,11 @@ export const Login = async (req: Request, res: Response) => {
       message: "Login successful",
       token: token,
     });
-  } catch (error: any) {
+  } catch (err: any) {
     res.status(500).json({
-      status: error.status,
-      message: error.message,
+      status: err.status,
+      message: err.message,
+      error: err.error,
     });
   } finally {
     res.end();
@@ -48,15 +61,21 @@ export const Register = async (req: Request, res: Response) => {
   const { email, password, username, firstName, lastName } = req.body;
 
   if (!email || !password || !username || !firstName || !lastName) {
-    res.status(400).json({ message: "All fields are required" });
+    res.status(400).json({
+      status: "error",
+      message: "All fields are required",
+    });
     return;
   }
 
   try {
-    const userData = await getUserCredential(email);
+    const userData = await getUserCredential(username);
 
     if (userData.user) {
-      res.status(400).json({ message: "User already exists" });
+      res.status(400).json({
+        status: "error",
+        message: "User already exists",
+      });
       return;
     }
 
@@ -75,6 +94,7 @@ export const Register = async (req: Request, res: Response) => {
     res.status(200).json({
       status: userCreation.status,
       message: userCreation.message,
+      data: userCreation.data,
     });
   } catch (err: any) {
     res.status(500).json({
@@ -89,7 +109,6 @@ export const Register = async (req: Request, res: Response) => {
 
 export const Profile = async (req: Request, res: Response) => {
   const { username } = req.params;
-
   if (!username) {
     res.status(400).json({ message: "Username is required" });
     return;

@@ -57,6 +57,31 @@ export const hashPassword = (password: string): Promise<string> => {
   });
 };
 
+export const comparePassword = (
+  password: string,
+  hash: string
+): Promise<{
+  status: string;
+  result: boolean;
+}> => {
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(password, hash, (err, result) => {
+      if (err) {
+        reject({
+          status: "error",
+          message: "Failed to compare password.",
+          error: err,
+        });
+        return;
+      }
+      resolve({
+        status: "success",
+        result,
+      });
+    });
+  });
+};
+
 export const setAccessCookie = (res: any, token: string) => {
   res.cookie("authToken", token, {
     httpOnly: true,

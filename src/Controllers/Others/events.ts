@@ -62,9 +62,9 @@ export const ShowEvent = async (req: Request, res: Response) => {
 // ==============================
 
 export const UserJoinedEvent = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const { userID } = req.params;
 
-  if (!userId) {
+  if (!userID) {
     res.status(400).json({
       status: "error",
       message: "User ID is required",
@@ -74,7 +74,7 @@ export const UserJoinedEvent = async (req: Request, res: Response) => {
   }
 
   try {
-    const userEvents = await getUserEvents(parseInt(userId));
+    const userEvents = await getUserEvents(parseInt(userID));
 
     res.status(200).json({
       status: userEvents.status,
@@ -91,9 +91,9 @@ export const UserJoinedEvent = async (req: Request, res: Response) => {
 };
 
 export const UserRegisterEvent = async (req: Request, res: Response) => {
-  const { userId, eventId } = req.params;
+  const { userID, eventID } = req.params;
 
-  if (!userId || !eventId) {
+  if (!userID || !eventID) {
     res.status(400).json({
       status: "error",
       message: "User ID and Event ID are required",
@@ -104,8 +104,8 @@ export const UserRegisterEvent = async (req: Request, res: Response) => {
 
   try {
     const userRegistration = await userEventRegistration(
-      parseInt(userId),
-      parseInt(eventId)
+      parseInt(userID),
+      parseInt(eventID)
     );
 
     res.status(200).json({
@@ -123,9 +123,9 @@ export const UserRegisterEvent = async (req: Request, res: Response) => {
 };
 
 export const UserUnregisterEvent = async (req: Request, res: Response) => {
-  const { userId, eventId } = req.params;
+  const { userID, eventID } = req.params;
 
-  if (!userId || !eventId) {
+  if (!userID || !eventID) {
     res.status(400).json({
       status: "error",
       message: "User ID and Event ID are required",
@@ -136,13 +136,14 @@ export const UserUnregisterEvent = async (req: Request, res: Response) => {
 
   try {
     const userUnregistration = await userEventUnregistration(
-      parseInt(userId),
-      parseInt(eventId)
+      parseInt(userID),
+      parseInt(eventID)
     );
 
     res.status(200).json({
       status: userUnregistration.status,
       message: userUnregistration.message,
+      data: userUnregistration.data,
     });
   } catch (err: any) {
     res.status(500).json({
@@ -183,10 +184,10 @@ export const CreateEvent = async (req: Request, res: Response) => {
       organizerId: parseInt(userId),
       event_name: eventTitle,
       location,
-      date: new Date(date),
+      date: date,
       time: new Date(date).toLocaleTimeString(),
       reminders: description,
-      max_participants: maxAttendees,
+      max_participants: Number(maxAttendees),
       registered_participants: 0,
     };
 
@@ -198,6 +199,7 @@ export const CreateEvent = async (req: Request, res: Response) => {
       data: createEvent.data,
     });
   } catch (err: any) {
+    console.log(err);
     res
       .status(500)
       .json({ status: err.status, message: err.message, error: err.error });
@@ -231,8 +233,8 @@ export const UpdateEvent = async (req: Request, res: Response) => {
     const event = {
       event_name: eventTitle,
       location,
-      date: new Date(date),
-      time: new Date(date).toLocaleTimeString(),
+      date: date ? date : undefined,
+      time: date ? new Date(date).toLocaleTimeString() : undefined,
       reminders: description,
       max_participants: maxAttendees,
     };

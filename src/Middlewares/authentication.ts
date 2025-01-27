@@ -1,6 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../Services";
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        username: string;
+        role: string;
+      };
+    }
+  }
+}
+
 export const verifyToken = async (
   req: Request,
   res: Response,
