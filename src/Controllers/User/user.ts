@@ -108,7 +108,13 @@ export const Register = async (req: Request, res: Response) => {
 };
 
 export const Profile = async (req: Request, res: Response) => {
-  const { username } = req.params;
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  const { username } = req.user;
+
   if (!username) {
     res.status(400).json({ message: "Username is required" });
     return;

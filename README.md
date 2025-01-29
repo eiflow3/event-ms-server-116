@@ -21,6 +21,13 @@
     "token": "JWT_TOKEN"
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Invalid username or password"
+  }
+  ```
 
 ### Register
 
@@ -50,6 +57,13 @@
     }
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "User already exists"
+  }
+  ```
 
 ### Logout
 
@@ -59,6 +73,13 @@
   ```json
   {
     "message": "Logout successful"
+  }
+  ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Authentication required"
   }
   ```
 
@@ -80,6 +101,13 @@
     }
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "User not found"
+  }
+  ```
 
 ## Event Routes
 
@@ -96,6 +124,14 @@
     "data": [Event[]]
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to fetch events",
+    "error": "Error details"
+  }
+  ```
 
 ### Get Single Event
 
@@ -108,6 +144,13 @@
     "status": "success",
     "message": "Event fetched successfully",
     "data": Event
+  }
+  ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Event not found"
   }
   ```
 
@@ -135,6 +178,14 @@
     "data": Event
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to create event",
+    "error": "Missing required parameters"
+  }
+  ```
 
 ### Update Event
 
@@ -159,6 +210,14 @@
     "data": Event
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to update event",
+    "error": "Event not found"
+  }
+  ```
 
 ### Delete Event
 
@@ -170,6 +229,14 @@
   {
     "status": "success",
     "message": "Event deleted successfully"
+  }
+  ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to delete event",
+    "error": "Event not found"
   }
   ```
 
@@ -188,6 +255,14 @@
     "data": [JoinedEvent[]]
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to fetch events",
+    "error": "User not found"
+  }
+  ```
 
 ### Register for Event
 
@@ -202,6 +277,14 @@
     "data": JoinedEvent
   }
   ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to register to event",
+    "error": "Already registered to this event"
+  }
+  ```
 
 ### Unregister from Event
 
@@ -214,6 +297,14 @@
     "status": "success",
     "message": "Unregistered from event successfully",
     "data": JoinedEvent
+  }
+  ```
+- **Error Response**:
+  ```json
+  {
+    "status": "error",
+    "message": "Failed to unregister from event",
+    "error": "Not registered to this event"
   }
   ```
 
