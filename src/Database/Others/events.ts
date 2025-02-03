@@ -384,12 +384,6 @@ export const deleteEvent = (
           });
         }
 
-        await tx.joinedevent.deleteMany({
-          where: {
-            event_id: eventID,
-          },
-        });
-
         await tx.event.delete({
           where: {
             id: eventID,
