@@ -108,6 +108,10 @@ export const UserRegisterEvent = async (req: Request, res: Response) => {
       parseInt(eventID)
     );
 
+    if (!userRegistration) {
+      throw new Error("User registration failed.");
+    }
+
     res.status(200).json({
       status: userRegistration.status,
       message: userRegistration.message,
@@ -139,6 +143,10 @@ export const UserUnregisterEvent = async (req: Request, res: Response) => {
       parseInt(userID),
       parseInt(eventID)
     );
+
+    if (!userUnregistration) {
+      throw new Error("User unregistration failed.");
+    }
 
     res.status(200).json({
       status: userUnregistration.status,
