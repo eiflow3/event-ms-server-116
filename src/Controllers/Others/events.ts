@@ -255,7 +255,6 @@ export const UpdateEvent = async (req: Request, res: Response) => {
       data: updateResult.data,
     });
   } catch (err: any) {
-    console.log(err);
     res
       .status(500)
       .json({ status: err.status, message: err.message, error: err.error });
