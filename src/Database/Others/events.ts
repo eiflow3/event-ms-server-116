@@ -8,12 +8,32 @@ export const showAllEvents = (): Promise<{
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const events = await prisma.event.findMany();
+      const events = await prisma.event.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      const formattedEvents = events.map((event) => {
+        return {
+          ...event,
+          user: {
+            id: event.user.id,
+            full_name: `${event.user.first_name} ${event.user.last_name}`,
+          },
+        };
+      });
 
       resolve({
         status: "success",
         message: "Events fetched successfully",
-        data: events,
+        data: formattedEvents,
       });
     } catch (error) {
       reject({
@@ -345,12 +365,12 @@ export const deleteEvent = (
 ): Promise<{
   status: string;
   message: string;
-  data: event;
+  data: event | null;
 }> => {
   return new Promise(async (resolve, reject) => {
     try {
       const res = await prisma.$transaction(async (tx) => {
-        const event = await tx.event.delete({
+        const event = await tx.event.findFirst({
           where: {
             id: eventID,
           },
@@ -360,12 +380,19 @@ export const deleteEvent = (
           reject({
             status: "error",
             message: "Event not found.",
+            data: null,
           });
         }
 
         await tx.joinedevent.deleteMany({
           where: {
             event_id: eventID,
+          },
+        });
+
+        await tx.event.delete({
+          where: {
+            id: eventID,
           },
         });
 
@@ -377,8 +404,9 @@ export const deleteEvent = (
       });
 
       resolve(res);
-    } catch (error) {
+    } catch (error: any) {
       reject({
+        status: error.status,
         message: "Failed to delete event",
         error: error,
       });
