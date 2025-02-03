@@ -129,6 +129,19 @@ export const userEventRegistration = (
   return new Promise(async (resolve, reject) => {
     try {
       const res = await prisma.$transaction(async (tx) => {
+        const isUserExist = await tx.user.findUnique({
+          where: {
+            id: userID,
+          },
+        });
+
+        if (!isUserExist) {
+          reject({
+            status: "error",
+            message: "User not found.",
+          });
+        }
+
         const isEventExist = await tx.event.findUnique({
           where: {
             id: eventID,
@@ -204,6 +217,19 @@ export const userEventUnregistration = (
   return new Promise(async (resolve, reject) => {
     try {
       const res = await prisma.$transaction(async (tx) => {
+        const isUserExist = await tx.user.findUnique({
+          where: {
+            id: userID,
+          },
+        });
+
+        if (!isUserExist) {
+          reject({
+            status: "error",
+            message: "User not found.",
+          });
+        }
+
         const isEventExist = await tx.event.findUnique({
           where: {
             id: eventID,
