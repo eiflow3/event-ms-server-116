@@ -244,7 +244,7 @@ export const UpdateEvent = async (req: Request, res: Response) => {
       date: date ? date : undefined,
       time: date ? new Date(date).toLocaleTimeString() : undefined,
       reminders: description,
-      max_participants: maxAttendees,
+      max_participants: Number(maxAttendees),
     };
 
     const updateResult = await updateEvent(parseInt(eventID), event);
@@ -255,6 +255,7 @@ export const UpdateEvent = async (req: Request, res: Response) => {
       data: updateResult.data,
     });
   } catch (err: any) {
+    console.log(err);
     res
       .status(500)
       .json({ status: err.status, message: err.message, error: err.error });
