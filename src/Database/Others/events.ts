@@ -125,10 +125,23 @@ export const userEventRegistration = (
   status: string;
   message: string;
   data: joinedevent;
-}> => {
+} | void> => {
   return new Promise(async (resolve, reject) => {
     try {
       const res = await prisma.$transaction(async (tx) => {
+        const isUserExist = await tx.user.findUnique({
+          where: {
+            id: userID,
+          },
+        });
+
+        if (!isUserExist) {
+          return reject({
+            status: "error",
+            message: "User not found.",
+          });
+        }
+
         const isEventExist = await tx.event.findUnique({
           where: {
             id: eventID,
@@ -136,7 +149,7 @@ export const userEventRegistration = (
         });
 
         if (!isEventExist) {
-          reject({
+          return reject({
             status: "error",
             message: "Event not found.",
           });
@@ -144,13 +157,13 @@ export const userEventRegistration = (
 
         const alreadyJoined = await tx.joinedevent.findFirst({
           where: {
-            user_id: userID,
-            event_id: eventID,
+            user_id: isUserExist?.id,
+            event_id: isEventExist?.id,
           },
         });
 
         if (alreadyJoined) {
-          reject({
+          return reject({
             status: "error",
             message: "Already registered to this event.",
           });
@@ -158,8 +171,8 @@ export const userEventRegistration = (
 
         const joinEvent = await tx.joinedevent.create({
           data: {
-            user_id: userID,
-            event_id: eventID,
+            user_id: isUserExist.id,
+            event_id: isEventExist.id,
           },
         });
 
@@ -200,10 +213,23 @@ export const userEventUnregistration = (
   status: string;
   message: string;
   data: joinedevent;
-}> => {
+} | void> => {
   return new Promise(async (resolve, reject) => {
     try {
       const res = await prisma.$transaction(async (tx) => {
+        const isUserExist = await tx.user.findUnique({
+          where: {
+            id: userID,
+          },
+        });
+
+        if (!isUserExist) {
+          return reject({
+            status: "error",
+            message: "User not found.",
+          });
+        }
+
         const isEventExist = await tx.event.findUnique({
           where: {
             id: eventID,
@@ -211,7 +237,7 @@ export const userEventUnregistration = (
         });
 
         if (!isEventExist) {
-          reject({
+          return reject({
             status: "error",
             message: "Event not found.",
           });
@@ -219,13 +245,13 @@ export const userEventUnregistration = (
 
         const alreadyJoined = await tx.joinedevent.findFirst({
           where: {
-            user_id: userID,
+            user_id: isUserExist.id,
             event_id: eventID,
           },
         });
 
         if (!alreadyJoined) {
-          reject({
+          return reject({
             status: "error",
             message: "Not registered to this event.",
           });
