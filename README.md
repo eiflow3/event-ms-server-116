@@ -1,3 +1,49 @@
+# Event System API
+
+## Installation
+
+1. Clone the repository
+
+```bash
+git clone <repository_url>
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in the root directory with the following variables:
+
+```env
+DATABASE_URL="your_postgresql_database_url"
+JWT_SECRET="your_jwt_secret"
+PORT=3000
+```
+
+4. Initialize the database:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+## Running the Application
+
+### Development Mode
+
+```bash
+npm run dev
+```
+
+### Production Build
+
+```bash
+npm run build
+npm start
+```
+
 # API Documentation
 
 ## Authentication Routes
